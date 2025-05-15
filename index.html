@@ -51,12 +51,11 @@
       }
 
       try {
-        const room = new LiveKit.Room({
+        const room = new livekit.Room({
           adaptiveStream: true,
           dynacast: true
         });
 
-        // Connect to the room
         await room.connect(url, token);
         console.log("Connected to LiveKit");
 
