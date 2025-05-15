@@ -2,73 +2,90 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Heygen LiveKit Streaming</title>
-  <script src="https://unpkg.com/livekit-client/dist/livekit-client.umd.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background: #f4f4f4;
-    }
-    video {
-      width: 100%;
-      max-width: 800px;
-      height: auto;
-      border: 2px solid #333;
-      border-radius: 10px;
-      margin-top: 20px;
-    }
-    input, button {
-      padding: 10px;
-      font-size: 1em;
-      margin: 5px 0;
-      width: 100%;
-      max-width: 500px;
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Heygen Avatar Embed</title>
 </head>
 <body>
-  <h2>Heygen Live Video Stream Viewer</h2>
-
-  <label for="serverUrl">LiveKit Server URL:</label><br>
-  <input type="text" id="serverUrl" placeholder="e.g. wss://your-livekit-server.com"><br>
-
-  <label for="accessToken">Access Token:</label><br>
-  <input type="text" id="accessToken" placeholder="Enter your token"><br>
-
-  <button onclick="startStreaming()">Start Session</button>
-
-  <video id="video" autoplay playsinline muted></video>
+  <h1>Heygen Avatar Embed</h1>
+  <p>The Heygen avatar should appear at the bottom left corner.</p>
 
   <script>
-    async function startStreaming() {
-      const serverUrl = document.getElementById('serverUrl').value;
-      const accessToken = document.getElementById('accessToken').value;
+    !function(window){
+      const host="https://labs.heygen.com",
+            url=host+"/guest/streaming-embed?share=eyJxdWFsaXR5IjoiaGlnaCIsImF2YXRhck5hbWUiOiJUaGFkZGV1c19DYXN1YWxMb29rX3B1Ymxp%0D%0AYyIsInByZXZpZXdJbWciOiJodHRwczovL2ZpbGVzMi5oZXlnZW4uYWkvYXZhdGFyL3YzLzRlNWUz%0D%0ANDU0ZWYyMDQ3ODVhMjcxNjM0NTY2ODQwZWRjXzU1OTQwL3ByZXZpZXdfdGFyZ2V0LndlYnAiLCJu%0D%0AZWVkUmVtb3ZlQmFja2dyb3VuZCI6ZmFsc2UsImtub3dsZWRnZUJhc2VJZCI6IjNhNjlkMDdjYWU0%0D%0AMTQ1MDJhZGI5NjQwOWRmZjkyYjliIiwidXNlcm5hbWUiOiI5NTAwYTdhOGZmODk0MGQ1OGJjMzRk%0D%0AMTUyZjEwMmEyMCJ9&inIFrame=1",
+            clientWidth=document.body.clientWidth,
+            wrapDiv=document.createElement("div");
 
-      if (!serverUrl || !accessToken) {
-        alert('Please enter both server URL and token');
-        return;
-      }
+      wrapDiv.id="heygen-streaming-embed";
+      const container=document.createElement("div");
+      container.id="heygen-streaming-container";
 
-      const room = new LiveKit.Room();
+      const stylesheet=document.createElement("style");
+      stylesheet.innerHTML=`
+        #heygen-streaming-embed {
+          z-index: 9999;
+          position: fixed;
+          left: 40px;
+          bottom: 40px;
+          width: 200px;
+          height: 200px;
+          border-radius: 50%;
+          border: 2px solid #fff;
+          box-shadow: 0px 8px 24px 0px rgba(0, 0, 0, 0.12);
+          transition: all linear 0.1s;
+          overflow: hidden;
+          opacity: 0;
+          visibility: hidden;
+        }
+        #heygen-streaming-embed.show {
+          opacity: 1;
+          visibility: visible;
+        }
+        #heygen-streaming-embed.expand {
+          ${clientWidth<540?"height: 266px; width: 96%; left: 50%; transform: translateX(-50%);":"height: 366px; width: calc(366px * 16 / 9);"}
+          border: 0;
+          border-radius: 8px;
+        }
+        #heygen-streaming-container {
+          width: 100%;
+          height: 100%;
+        }
+        #heygen-streaming-container iframe {
+          width: 100%;
+          height: 100%;
+          border: 0;
+        }
+      `;
 
-      try {
-        await room.connect(serverUrl, accessToken);
-        console.log('Connected to LiveKit Room');
+      const iframe=document.createElement("iframe");
+      iframe.allowFullscreen=!1;
+      iframe.title="Streaming Embed";
+      iframe.role="dialog";
+      iframe.allow="microphone";
+      iframe.src=url;
 
-        room.on('trackSubscribed', (track, publication, participant) => {
-          if (track.kind === 'video') {
-            const videoElement = track.attach();
-            const videoContainer = document.getElementById('video');
-            videoContainer.srcObject = videoElement.srcObject || videoElement.captureStream();
+      let visible=!1, initial=!1;
+
+      window.addEventListener("message",(e=>{
+        if(e.origin===host && e.data && e.data.type==="streaming-embed"){
+          if(e.data.action==="init"){
+            initial=!0;
+            wrapDiv.classList.toggle("show", initial);
+          } else if(e.data.action==="show"){
+            visible=!0;
+            wrapDiv.classList.toggle("expand", visible);
+          } else if(e.data.action==="hide"){
+            visible=!1;
+            wrapDiv.classList.toggle("expand", visible);
           }
-        });
+        }
+      }));
 
-      } catch (error) {
-        console.error('Failed to connect to LiveKit:', error);
-        alert('Connection error: ' + error.message);
-      }
-    }
+      container.appendChild(iframe);
+      wrapDiv.appendChild(stylesheet);
+      wrapDiv.appendChild(container);
+      document.body.appendChild(wrapDiv);
+    }(globalThis);
   </script>
 </body>
 </html>
