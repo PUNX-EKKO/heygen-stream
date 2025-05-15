@@ -1,58 +1,58 @@
-!DOCTYPE html
-html lang=en
-head
-meta charset=UTF-8 
-meta name=viewport content=width=device-width, initial-scale=1 
-titleHeygen Livestream Viewertitle
-style
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Heygen Livestream Viewer</title>
+<style>
   body {
-    font-family Arial, sans-serif;
-    margin 1em;
+    font-family: Arial, sans-serif;
+    margin: 1em;
   }
   label {
-    font-weight bold;
+    font-weight: bold;
   }
-  input[type=text] {
-    width 80%;
-    padding 0.5em;
-    margin-right 1em;
+  input[type="text"] {
+    width: 80%;
+    padding: 0.5em;
+    margin-right: 1em;
   }
   button {
-    padding 0.5em 1em;
+    padding: 0.5em 1em;
   }
   #videoContainer {
-    margin-top 2em;
-    width 640px;
-    height 360px;
-    background-color #000;
+    margin-top: 2em;
+    width: 640px;
+    height: 360px;
+    background-color: #000;
   }
   video {
-    width 100%;
-    height 100%;
-    background-color black;
+    width: 100%;
+    height: 100%;
+    background-color: black;
   }
   #status {
-    margin-top 1em;
-    font-style italic;
+    margin-top: 1em;
+    font-style: italic;
   }
-style
-head
-body
+</style>
+</head>
+<body>
 
-h1Heygen Livestream Viewerh1
+<h1>Heygen Livestream Viewer</h1>
 
-label for=streamUrlEnter Heygen Stream URLlabelbr 
-input type=text id=streamUrl placeholder=wssheygen-feapbkvq.livekit.cloud 
-button id=connectBtnConnectbutton
+<label for="streamUrl">Enter Heygen Stream URL:</label><br />
+<input type="text" id="streamUrl" placeholder="wss://heygen-feapbkvq.livekit.cloud" />
+<button id="connectBtn">Connect</button>
 
-div id=statusdiv
+<div id="status"></div>
 
-div id=videoContainer
-  video id=livestreamVideo autoplay playsinline controlsvideo
-div
+<div id="videoContainer">
+  <video id="livestreamVideo" autoplay playsinline controls></video>
+</div>
 
-script src=httpscdn.jsdelivr.netnpmlivekit-clientdistlivekit-client.min.jsscript
-script
+<script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.min.js"></script>
+<script>
   const connectBtn = document.getElementById('connectBtn');
   const streamUrlInput = document.getElementById('streamUrl');
   const statusEl = document.getElementById('status');
@@ -60,7 +60,7 @@ script
 
   let room;
 
-  connectBtn.addEventListener('click', async () = {
+  connectBtn.addEventListener('click', async () => {
     const url = streamUrlInput.value.trim();
     if (!url) {
       alert('Please enter a stream URL');
@@ -70,36 +70,36 @@ script
     statusEl.textContent = 'Connecting...';
 
     try {
-       Disconnect previous connection if any
+      // Disconnect previous connection if any
       if (room) {
         room.disconnect();
         room = null;
         videoEl.srcObject = null;
       }
 
-       Connect to LiveKit room (Heygen uses LiveKit under the hood)
-       Note This requires a valid access token; here we only have the URL.
-       Normally you'd get a token from your backend for authentication.
-       For demo purposes, just showing basic connection structure.
+      // Connect to LiveKit room (Heygen uses LiveKit under the hood)
+      // Note: This requires a valid access token; here we only have the URL.
+      // Normally you'd get a token from your backend for authentication.
+      // For demo purposes, just showing basic connection structure.
       
-       livekitClient.Room expects a URL and a token, e.g.
-       const token = await fetchTokenSomehow();
-       room = new livekitClient.Room();
-       await room.connect(url, token);
+      // livekitClient.Room expects a URL and a token, e.g.:
+      // const token = await fetchTokenSomehow();
+      // room = new livekitClient.Room();
+      // await room.connect(url, token);
 
-       Since token is not provided, this is a placeholder
+      // Since token is not provided, this is a placeholder:
       statusEl.textContent = 'This demo requires a valid access token to connect.';
       
-       Placeholder simulate connected video stream
-       You can replace this with real stream attaching code when integrating SDK.
-       Example videoEl.srcObject = room.localParticipant.videoTracks[0].track.mediaStreamTrack;
+      // Placeholder: simulate connected video stream
+      // You can replace this with real stream attaching code when integrating SDK.
+      // Example: videoEl.srcObject = room.localParticipant.videoTracks[0].track.mediaStreamTrack;
 
     } catch (err) {
-      statusEl.textContent = 'Connection failed ' + err.message;
+      statusEl.textContent = 'Connection failed: ' + err.message;
       console.error(err);
     }
   });
-script
+</script>
 
-body
-html
+</body>
+</html>
