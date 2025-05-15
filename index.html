@@ -2,85 +2,65 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Heygen Livestream Viewer</title>
-  <script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.min.js"></script>
+  <title>HeyGen Live Stream</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 40px;
+      text-align: center;
+      padding: 30px;
+      background-color: #f0f0f0;
     }
-    input, button {
-      font-size: 16px;
-      padding: 8px;
-      margin: 8px 0;
-      width: 100%;
-      max-width: 500px;
-    }
-    #video-container video {
-      max-width: 100%;
-      border: 2px solid #ccc;
-      border-radius: 8px;
-      margin-top: 20px;
+    video {
+      width: 80%;
+      max-width: 800px;
+      border: 2px solid #333;
+      border-radius: 10px;
     }
   </style>
 </head>
 <body>
+  <h1>HeyGen Live Stream</h1>
+  <video id="video" autoplay playsinline></video>
 
-  <h2>Heygen Livestream Viewer</h2>
-
-  <label for="wsUrl">LiveKit Server URL (e.g., wss://your-livekit.live):</label><br>
-  <input type="text" id="wsUrl" placeholder="Enter LiveKit WebSocket URL" value="wss://heygen-feapbkvq.livekit.cloud"><br>
-
-  <label for="token">Access Token:</label><br>
-  <input type="text" id="token" placeholder="Enter access token"><br>
-
-  <button onclick="connectToStream()">Join Livestream</button>
-
-  <div id="video-container"></div>
-
+  <!-- LiveKit Client SDK from CDN -->
+  <script src="https://unpkg.com/@livekit/client/dist/livekit-client.min.js"></script>
   <script>
-    async function connectToStream() {
-      const url = document.getElementById('wsUrl').value.trim();
-      const token = document.getElementById('token').value.trim();
-      const container = document.getElementById('video-container');
-      container.innerHTML = '';
+    // Replace this with the actual HeyGen API response data
+    const heygenData = {
+      session_id: "e408699c-3159-11f0-b6bf-223772d1bcc4",
+      access_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDczNzg2NjAsImlzcyI6IkFQSUplMjZaamg4YUFYRCIsIm5iZiI6MTc0NzI5MjI2MCwic3ViIjoiY2xpZW50IiwidmlkZW8iOnsiY2FuUHVibGlzaCI6dHJ1ZSwiY2FuUHVibGlzaERhdGEiOnRydWUsImNhblN1YnNjcmliZSI6dHJ1ZSwiY2FuVXBkYXRlT3duTWV0YWRhdGEiOmZhbHNlLCJyb29tIjoiZTQwODY5OWMtMzE1OS0xMWYwLWI2YmYtMjIzNzcyZDFiY2M0Iiwicm9vbUpvaW4iOnRydWV9fQ.Ikl6bR1h-2UXfwoYQdD3LbU1_YxhUPVROEnUp1W0vrc",
+      url: "wss://heygen-feapbkvq.livekit.cloud"
+    };
 
-      if (!url || !token) {
-        alert("Please enter both the WebSocket URL and access token.");
-        return;
-      }
+    async function startStream() {
+      const { Room } = window.livekit;
+      const room = new Room();
 
       try {
-        const room = new livekit.Room({
-          adaptiveStream: true,
-          dynacast: true
-        });
+        await room.connect(heygenData.url, heygenData.access_token);
+        console.log('Connected to LiveKit');
 
-        await room.connect(url, token);
-        console.log("Connected to LiveKit");
-
-        // Show tracks from existing participants
-        room.participants.forEach(participant => {
-          participant.tracks.forEach(pub => {
-            if (pub.isSubscribed && pub.track) {
-              const el = pub.track.attach();
-              container.appendChild(el);
-            }
-          });
-        });
-
-        // Show tracks from new participants
+        // Attach remote video track
         room.on('trackSubscribed', (track, publication, participant) => {
-          const el = track.attach();
-          container.appendChild(el);
+          if (track.kind === 'video') {
+            const videoEl = document.getElementById('video');
+            track.attach(videoEl);
+          }
+        });
+
+        room.on('trackUnsubscribed', (track) => {
+          if (track.kind === 'video') {
+            track.detach().forEach(el => el.remove());
+          }
         });
 
       } catch (error) {
-        console.error("Error connecting to LiveKit:", error);
-        alert("Failed to connect. Check console for details.");
+        console.error('Connection error:', error);
+        alert('Failed to connect to stream');
       }
     }
-  </script>
 
+    startStream();
+  </script>
 </body>
 </html>
