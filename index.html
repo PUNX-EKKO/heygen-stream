@@ -1,79 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>HeyGen Livestream Viewer</title>
-  <script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.min.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 40px;
-      background: #f4f4f4;
-    }
-    h1 {
-      color: #333;
-    }
-    pre {
-      background: #fff;
-      padding: 20px;
-      border: 1px solid #ccc;
-      overflow-x: auto;
-    }
-    .status {
-      font-weight: bold;
-      margin-top: 20px;
-    }
-  </style>
+  <meta charset="UTF-8">
+  <title>Heygen Live Avatar</title>
 </head>
 <body>
-  <h1>HeyGen Livestream API Viewer</h1>
-  <div class="status" id="status">Connecting...</div>
-  <pre id="logOutput">Waiting for connection...</pre>
+  <video id="remoteVideo" autoplay playsinline style="width: 100%; max-width: 720px;"></video>
 
+  <script src="https://unpkg.com/@livekit/client/dist/livekit-client.min.js"></script>
   <script>
-    const sessionData = {
-      session_id: "7014b66a-315c-11f0-a8d5-66c531603280",
-      access_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDczNzk3NTQsImlzcyI6IkFQSUplMjZaamg4YUFYRCIsIm5iZiI6MTc0NzI5MzM1NCwic3ViIjoiY2xpZW50IiwidmlkZW8iOnsiY2FuUHVibGlzaCI6dHJ1ZSwiY2FuUHVibGlzaERhdGEiOnRydWUsImNhblN1YnNjcmliZSI6dHJ1ZSwiY2FuVXBkYXRlT3duTWV0YWRhdGEiOmZhbHNlLCJyb29tIjoiNzAxNGI2NmEtMzE1Yy0xMWYwLWE4ZDUtNjZjNTMxNjAzMjgwIiwicm9vbUpvaW4iOnRydWV9fQ.PkY-85Kii4hKQZT761FRzsrK9zuLpbpG-PO2N2ByH90",
-      realtime_endpoint: "wss://webrtc-signaling.heygen.io/v2-alpha/interactive-avatar/session/7014b66a-315c-11f0-a8d5-66c531603280"
-    };
+    (async () => {
+      const accessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDc0MDQzMTEsImlzcyI6IkFQSUplMjZaamg4YUFYRCIsIm5iZiI6MTc0NzMxNzkxMSwic3ViIjoiY2xpZW50IiwidmlkZW8iOnsiY2FuUHVibGlzaCI6dHJ1ZSwiY2FuUHVibGlzaERhdGEiOnRydWUsImNhblN1YnNjcmliZSI6dHJ1ZSwiY2FuVXBkYXRlT3duTWV0YWRhdGEiOmZhbHNlLCJyb29tIjoiOWQ3OGY5NTItMzE5NS0xMWYwLWIzMTQtNTYyNjkyMTRmMTE5Iiwicm9vbUpvaW4iOnRydWV9fQ.KBbxYTwQYqik326yfcex2gPh2eHABJVRO3QToSFKgpY"; // Replace with token from Heygen
+      const livekitURL = "wss://webrtc-signaling.heygen.io/v2-alpha/interactive-avatar/session/9d78f952-3195-11f0-b314-56269214f119"; // Replace with `realtime_endpoint`
 
-    async function startStream() {
-      const { Room, connect } = window.livekit;
-      const room = new Room();
+      const room = new Livekit.Room();
+      const videoElement = document.getElementById('remoteVideo');
 
-      room.on('participantConnected', (participant) => {
-        log(`👤 Participant connected: ${participant.identity}`);
-      });
-
-      room.on('trackSubscribed', (track, publication, participant) => {
-        log(`🎥 Track subscribed from ${participant.identity}`);
+      room.on(Livekit.RoomEvent.TrackSubscribed, (track) => {
         if (track.kind === 'video') {
-          const videoElem = track.attach();
-          document.body.appendChild(videoElem);
+          videoElement.srcObject = track.mediaStreamTrack ? new MediaStream([track.mediaStreamTrack]) : null;
         }
       });
 
       try {
-        await connect(sessionData.realtime_endpoint, sessionData.access_token, {
-          room,
-        });
-
-        document.getElementById('status').innerText = "✅ Connected to LiveKit Room";
-        log(`🔗 Joined session: ${sessionData.session_id}`);
-      } catch (err) {
-        console.error("❌ Connection failed:", err);
-        document.getElementById('status').innerText = "❌ Failed to connect.";
-        log(err.message);
+        await room.connect(livekitURL, accessToken);
+      } catch (error) {
+        console.error('Connection failed:', error);
       }
-    }
-
-    function log(message) {
-      const output = document.getElementById('logOutput');
-      output.innerText += message + "\n";
-    }
-
-    // Start stream after page loads
-    window.addEventListener("load", startStream);
+    })();
   </script>
 </body>
 </html>
