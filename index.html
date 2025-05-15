@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Agent Space</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       padding: 0;
@@ -17,8 +21,8 @@
       align-items: center;
       justify-content: center;
       flex-direction: column;
-      text-align: center;
       color: white;
+      text-align: center;
     }
 
     @keyframes gradientShift {
@@ -28,24 +32,23 @@
     }
 
     h1 {
-      font-size: 2.5rem;
-      margin-bottom: 10px;
+      font-size: 3rem;
+      margin: 0 0 10px 0;
     }
 
     p {
-      color: #f0f0f0;
+      font-size: 1.2rem;
       max-width: 600px;
       margin-bottom: 40px;
+      color: #f0f0f0;
     }
 
     #heygen-streaming-embed {
-      z-index: 9999;
-      position: relative !important;
-      width: 200px;
-      height: 200px;
+      width: 320px;
+      height: 320px;
       border-radius: 50%;
-      border: 4px solid white;
-      box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.2);
+      border: 4px solid #fff;
+      box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.3);
       overflow: hidden;
       transition: all 0.2s ease-in-out;
       opacity: 0;
@@ -78,69 +81,30 @@
 </head>
 <body>
   <h1>Agent Space</h1>
-  <p>Welcome to Agent Space — your personal business coach is getting ready to guide you to success.</p>
+  <p>Welcome to Agent Space — your personal business coach.</p>
 
   <!-- Heygen Embed Script -->
+  <div id="heygen-streaming-embed">
+    <div id="heygen-streaming-container">
+      <iframe
+        allowfullscreen="false"
+        title="Streaming Embed"
+        role="dialog"
+        allow="microphone"
+        src="https://labs.heygen.com/guest/streaming-embed?share=eyJxdWFsaXR5IjoiaGlnaCIsImF2YXRhck5hbWUiOiJHcmFoYW1fQmxhY2tfU3VpdF9wdWJsaWMiLCJwcmV2aWV3SW1nIjoiaHR0cHM6Ly9maWxlczIuaGV5Z2VuLmFpL2F2YXRhci92My9lMDRlYmFiY2M2Nzg0Y2I2OTU5YTg2NjYwNTQ3NDY1MF81NTM1MC9wcmV2aWV3X3RhbGtfMS53ZWJwIiwibmVlZFJlbW92ZUJhY2tncm91bmQiOnRydWUsImtub3dsZWRnZUJhc2VJZCI6IjNhNjlkMDdjYWU0MTQ1MDJhZGI5NjQwOWRmZjkyYjliIiwidXNlcm5hbWUiOiI5NTAwYTdhOGZmODk0MGQ1OGJjMzRkMTUyZjEwMmEyMCJ9&inIFrame=1">
+      </iframe>
+    </div>
+  </div>
+
   <script>
     !function(window){
-      const host="https://labs.heygen.com",
-            url=host+"/guest/streaming-embed?share=eyJxdWFsaXR5IjoiaGlnaCIsImF2YXRhck5hbWUiOiJHcmFoYW1fQmxhY2tfU3VpdF9wdWJsaWMi%0D%0ALCJwcmV2aWV3SW1nIjoiaHR0cHM6Ly9maWxlczIuaGV5Z2VuLmFpL2F2YXRhci92My9lMDRlYmFi%0D%0AY2M2Nzg0Y2I2OTU5YTg2NjYwNTQ3NDY1MF81NTM1MC9wcmV2aWV3X3RhbGtfMS53ZWJwIiwibmVl%0D%0AZFJlbW92ZUJhY2tncm91bmQiOnRydWUsImtub3dsZWRnZUJhc2VJZCI6IjNhNjlkMDdjYWU0MTQ1%0D%0AMDJhZGI5NjQwOWRmZjkyYjliIiwidXNlcm5hbWUiOiI5NTAwYTdhOGZmODk0MGQ1OGJjMzRkMTUy%0D%0AZjEwMmEyMCJ9&inIFrame=1";
+      const host = "https://labs.heygen.com";
+      const wrapDiv = document.getElementById("heygen-streaming-embed");
+      const clientWidth = document.body.clientWidth;
 
-      const clientWidth=document.body.clientWidth,
-            wrapDiv=document.createElement("div");
-      wrapDiv.id="heygen-streaming-embed";
+      let visible = false, initial = false;
 
-      const container=document.createElement("div");
-      container.id="heygen-streaming-container";
-
-      const stylesheet=document.createElement("style");
-      stylesheet.innerHTML=`
-        #heygen-streaming-embed {
-          z-index: 9999;
-          position: fixed;
-          left: 40px;
-          bottom: 40px;
-          width: 200px;
-          height: 200px;
-          border-radius: 50%;
-          border: 2px solid #fff;
-          box-shadow: 0px 8px 24px 0px rgba(0, 0, 0, 0.12);
-          transition: all linear 0.1s;
-          overflow: hidden;
-          opacity: 0;
-          visibility: hidden;
-        }
-        #heygen-streaming-embed.show {
-          opacity: 1;
-          visibility: visible;
-        }
-        #heygen-streaming-embed.expand {
-          ${clientWidth<540 ?
-            "height: 266px; width: 96%; left: 50%; transform: translateX(-50%);" :
-            "height: 366px; width: calc(366px * 16 / 9);"}
-          border: 0;
-          border-radius: 8px;
-        }
-        #heygen-streaming-container {
-          width: 100%;
-          height: 100%;
-        }
-        #heygen-streaming-container iframe {
-          width: 100%;
-          height: 100%;
-          border: 0;
-        }
-      `;
-
-      const iframe=document.createElement("iframe");
-      iframe.allowFullscreen = false;
-      iframe.title = "Streaming Embed";
-      iframe.role = "dialog";
-      iframe.allow = "microphone";
-      iframe.src = url;
-
-      let visible=false, initial=false;
-      window.addEventListener("message", (e)=>{
+      window.addEventListener("message", (e) => {
         if (e.origin === host && e.data?.type === "streaming-embed") {
           if (e.data.action === "init") {
             initial = true;
@@ -154,11 +118,6 @@
           }
         }
       });
-
-      container.appendChild(iframe);
-      wrapDiv.appendChild(stylesheet);
-      wrapDiv.appendChild(container);
-      document.body.appendChild(wrapDiv);
     }(globalThis);
   </script>
 </body>
