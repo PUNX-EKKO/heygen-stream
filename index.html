@@ -2,32 +2,78 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Heygen Live Avatar</title>
+  <title>Heygen LiveKit Streaming</title>
+  <script src="https://unpkg.com/livekit-client/dist/livekit-client.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f4f4f4;
+    }
+    video {
+      width: 100%;
+      max-width: 800px;
+      height: auto;
+      border: 2px solid #333;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+    input, button {
+      padding: 10px;
+      font-size: 1em;
+      margin: 5px 0;
+      width: 100%;
+      max-width: 500px;
+    }
+  </style>
 </head>
 <body>
-  <video id="remoteVideo" autoplay playsinline style="width: 100%; max-width: 720px;"></video>
+  <h2>Heygen Live Video Stream Viewer</h2>
 
-  <script src="https://unpkg.com/@livekit/client/dist/livekit-client.min.js"></script>
+  <label for="serverUrl">LiveKit Server URL:</label><br>
+  <input type="text" id="serverUrl" placeholder="e.g. wss://your-livekit-server.com"><br>
+
+  <label for="accessToken">Access Token:</label><br>
+  <input type="text" id="accessToken" placeholder="Enter your token"><br>
+
+  <button onclick="startStreaming()">Start Session</button>
+
+  <video id="video" autoplay playsinline></video>
+
   <script>
-    (async () => {
-      const accessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDc0MDQzMTEsImlzcyI6IkFQSUplMjZaamg4YUFYRCIsIm5iZiI6MTc0NzMxNzkxMSwic3ViIjoiY2xpZW50IiwidmlkZW8iOnsiY2FuUHVibGlzaCI6dHJ1ZSwiY2FuUHVibGlzaERhdGEiOnRydWUsImNhblN1YnNjcmliZSI6dHJ1ZSwiY2FuVXBkYXRlT3duTWV0YWRhdGEiOmZhbHNlLCJyb29tIjoiOWQ3OGY5NTItMzE5NS0xMWYwLWIzMTQtNTYyNjkyMTRmMTE5Iiwicm9vbUpvaW4iOnRydWV9fQ.KBbxYTwQYqik326yfcex2gPh2eHABJVRO3QToSFKgpY"; // Replace with token from Heygen
-      const livekitURL = "wss://webrtc-signaling.heygen.io/v2-alpha/interactive-avatar/session/9d78f952-3195-11f0-b314-56269214f119"; // Replace with `realtime_endpoint`
+    async function startStreaming() {
+      const serverUrl = document.getElementById('serverUrl').value;
+      const accessToken = document.getElementById('accessToken').value;
 
-      const room = new Livekit.Room();
-      const videoElement = document.getElementById('remoteVideo');
+      if (!serverUrl || !accessToken) {
+        alert('Please enter both server URL and token');
+        return;
+      }
 
-      room.on(Livekit.RoomEvent.TrackSubscribed, (track) => {
-        if (track.kind === 'video') {
-          videoElement.srcObject = track.mediaStreamTrack ? new MediaStream([track.mediaStreamTrack]) : null;
-        }
-      });
+      const { connect, Room } = livekit;
+      const room = new Room();
 
       try {
-        await room.connect(livekitURL, accessToken);
+        await connect(serverUrl, accessToken, {
+          room,
+          autoSubscribe: true
+        });
+
+        console.log('Connected to LiveKit Room');
+
+        room.on('trackSubscribed', (track, publication, participant) => {
+          if (track.kind === 'video') {
+            const videoElement = track.attach();
+            const videoContainer = document.getElementById('video');
+            videoContainer.srcObject = videoElement.srcObject;
+          }
+        });
+
       } catch (error) {
-        console.error('Connection failed:', error);
+        console.error('Failed to connect to LiveKit:', error);
+        alert('Connection error: ' + error.message);
       }
-    })();
+    }
   </script>
 </body>
 </html>
