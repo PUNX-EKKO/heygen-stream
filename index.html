@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Heygen LiveKit Streaming</title>
-  <script src="https://unpkg.com/livekit-client/dist/livekit-client.min.js"></script>
+  <script src="https://unpkg.com/livekit-client/dist/livekit-client.umd.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -38,7 +38,7 @@
 
   <button onclick="startStreaming()">Start Session</button>
 
-  <video id="video" autoplay playsinline></video>
+  <video id="video" autoplay playsinline muted></video>
 
   <script>
     async function startStreaming() {
@@ -50,22 +50,17 @@
         return;
       }
 
-      const { connect, Room } = livekit;
-      const room = new Room();
+      const room = new LiveKit.Room();
 
       try {
-        await connect(serverUrl, accessToken, {
-          room,
-          autoSubscribe: true
-        });
-
+        await room.connect(serverUrl, accessToken);
         console.log('Connected to LiveKit Room');
 
         room.on('trackSubscribed', (track, publication, participant) => {
           if (track.kind === 'video') {
             const videoElement = track.attach();
             const videoContainer = document.getElementById('video');
-            videoContainer.srcObject = videoElement.srcObject;
+            videoContainer.srcObject = videoElement.srcObject || videoElement.captureStream();
           }
         });
 
