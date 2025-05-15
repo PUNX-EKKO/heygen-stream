@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>HeyGen Livestream Viewer</title>
+  <script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -20,55 +20,60 @@
       overflow-x: auto;
     }
     .status {
-      margin-top: 10px;
       font-weight: bold;
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
-  <h1>HeyGen Livestream API Response</h1>
-  <div class="status" id="status">Connecting to WebSocket...</div>
-  <pre id="output"></pre>
+  <h1>HeyGen Livestream API Viewer</h1>
+  <div class="status" id="status">Connecting...</div>
+  <pre id="logOutput">Waiting for connection...</pre>
 
   <script>
-    const apiResponse = {
-      code: 100,
-      data: {
-        session_id: "f8b0671c-315a-11f0-b6bf-223772d1bcc4",
-        access_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDczNzkxMjQsImlzcyI6IkFQSUplMjZaamg4YUFYRCIsIm5iZiI6MTc0NzI5MjcyNCwic3ViIjoiY2xpZW50IiwidmlkZW8iOnsiY2FuUHVibGlzaCI6dHJ1ZSwiY2FuUHVibGlzaERhdGEiOnRydWUsImNhblN1YnNjcmliZSI6dHJ1ZSwiY2FuVXBkYXRlT3duTWV0YWRhdGEiOmZhbHNlLCJyb29tIjoiZjhiMDY3MWMtMzE1YS0xMWYwLWI2YmYtMjIzNzcyZDFiY2M0Iiwicm9vbUpvaW4iOnRydWV9fQ.cnlhLm-ZV9yAReNmdbkb2cLR9hC34Q_dmmlMhAiFUXo",
-        url: "wss://heygen-feapbkvq.livekit.cloud",
-        realtime_endpoint: "wss://webrtc-signaling.heygen.io/v2-alpha/interactive-avatar/session/f8b0671c-315a-11f0-b6bf-223772d1bcc4",
-        is_paid: false,
-        session_duration_limit: 600
-      },
-      message: "success"
+    const sessionData = {
+      session_id: "7014b66a-315c-11f0-a8d5-66c531603280",
+      access_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDczNzk3NTQsImlzcyI6IkFQSUplMjZaamg4YUFYRCIsIm5iZiI6MTc0NzI5MzM1NCwic3ViIjoiY2xpZW50IiwidmlkZW8iOnsiY2FuUHVibGlzaCI6dHJ1ZSwiY2FuUHVibGlzaERhdGEiOnRydWUsImNhblN1YnNjcmliZSI6dHJ1ZSwiY2FuVXBkYXRlT3duTWV0YWRhdGEiOmZhbHNlLCJyb29tIjoiNzAxNGI2NmEtMzE1Yy0xMWYwLWE4ZDUtNjZjNTMxNjAzMjgwIiwicm9vbUpvaW4iOnRydWV9fQ.PkY-85Kii4hKQZT761FRzsrK9zuLpbpG-PO2N2ByH90",
+      realtime_endpoint: "wss://webrtc-signaling.heygen.io/v2-alpha/interactive-avatar/session/7014b66a-315c-11f0-a8d5-66c531603280"
     };
 
-    const output = document.getElementById('output');
-    const status = document.getElementById('status');
+    async function startStream() {
+      const { Room, connect } = window.livekit;
+      const room = new Room();
 
-    output.innerText = JSON.stringify(apiResponse, null, 2);
+      room.on('participantConnected', (participant) => {
+        log(`👤 Participant connected: ${participant.identity}`);
+      });
 
-    // Optional: Connect to the WebSocket
-    const socket = new WebSocket(apiResponse.data.realtime_endpoint);
+      room.on('trackSubscribed', (track, publication, participant) => {
+        log(`🎥 Track subscribed from ${participant.identity}`);
+        if (track.kind === 'video') {
+          const videoElem = track.attach();
+          document.body.appendChild(videoElem);
+        }
+      });
 
-    socket.addEventListener('open', () => {
-      status.innerText = '✅ Connected to HeyGen WebSocket';
-    });
+      try {
+        await connect(sessionData.realtime_endpoint, sessionData.access_token, {
+          room,
+        });
 
-    socket.addEventListener('message', (event) => {
-      const newLog = `📨 Message Received:\n${event.data}\n\n`;
-      output.innerText += newLog;
-    });
+        document.getElementById('status').innerText = "✅ Connected to LiveKit Room";
+        log(`🔗 Joined session: ${sessionData.session_id}`);
+      } catch (err) {
+        console.error("❌ Connection failed:", err);
+        document.getElementById('status').innerText = "❌ Failed to connect.";
+        log(err.message);
+      }
+    }
 
-    socket.addEventListener('close', () => {
-      status.innerText = '❌ Disconnected from WebSocket';
-    });
+    function log(message) {
+      const output = document.getElementById('logOutput');
+      output.innerText += message + "\n";
+    }
 
-    socket.addEventListener('error', (error) => {
-      status.innerText = '⚠️ Error connecting to WebSocket';
-      console.error('WebSocket error:', error);
-    });
+    // Start stream after page loads
+    window.addEventListener("load", startStream);
   </script>
 </body>
 </html>
